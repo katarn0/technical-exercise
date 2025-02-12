@@ -57,9 +57,35 @@ public class UserService : IUserService
         return users.Select(MapToDto).ToList();
     }
 
-    public Task<UserDto?> UpdateUserAsync(int id, UserDto user)
+    public async Task<UserDto?> UpdateUserAsync(int id, UpdateUserDto user)
     {
-        throw new NotImplementedException();
+        var userEntity = await _dbContext.Users.FindAsync(id);
+
+        if (userEntity == null)
+        {
+            return null;
+        }
+
+        var validationResult = _userValidator.Validate(MapToModel(user));
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException(validationResult.Errors);
+        }
+
+        if (_dbContext.Users.Any(u => u.Email.Equals(user.Email)))
+        {
+            throw new ArgumentException($"Duplicate email address trying to be added: {user.Email}.");
+        }
+
+        userEntity.FirstName = user.FirstName;
+        userEntity.LastName = user.LastName;
+        userEntity.Email = user.Email;
+        userEntity.DateOfBirth = user.DateOfBirth;
+        userEntity.PhoneNumber = user.PhoneNumber;
+
+        await _dbContext.SaveChangesAsync();
+
+        return MapToDto(userEntity);
     }
 
     private static UserDto MapToDto(User entity)
@@ -90,6 +116,18 @@ public class UserService : IUserService
     }
 
     private static User MapToModel(CreateUserDto model)
+    {
+        return new User
+        {
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            Email = model.Email,
+            DateOfBirth = model.DateOfBirth,
+            PhoneNumber = model.PhoneNumber
+        };
+    }
+
+    private static User MapToModel(UpdateUserDto model)
     {
         return new User
         {

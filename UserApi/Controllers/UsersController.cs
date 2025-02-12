@@ -73,9 +73,40 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDto user)
+    public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto user)
     {
-        throw new NotImplementedException();
+        if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("Invalid user model received for update.");
+            return BadRequest(ModelState);
+        }
+
+        _logger.LogInformation("Updating user with ID: {Id}", id);
+        try
+        {
+            var updatedUser = await _userService.UpdateUserAsync(id, user);
+            if (updatedUser == null)
+            {
+                _logger.LogWarning("User with ID: {Id} not found for update.", id);
+                return NotFound();
+            }
+            return Ok(updatedUser);
+        }
+        catch (FluentValidation.ValidationException ve)
+        {
+            _logger.LogError(ve, "Error occurred while updating user with ID: {Id}", id);
+            return StatusCode(400, ve.Message);
+        }
+        catch (ArgumentException ae)
+        {
+            _logger.LogError(ae, "Error occurred while updating user with ID: {Id}", id);
+            return StatusCode(409, ae.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while updating user with ID: {Id}", id);
+            return StatusCode(500, "Internal server error.");
+        }
     }
 
     [HttpDelete("{id}")]
