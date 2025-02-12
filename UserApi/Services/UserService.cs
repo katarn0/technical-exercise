@@ -1,5 +1,7 @@
 ﻿namespace WebApi.UserApi.Services;
 
+using FluentValidation;
+
 using Microsoft.EntityFrameworkCore;
 
 using Data;
@@ -9,15 +11,33 @@ using Models.DataTransferObjects;
 public class UserService : IUserService
 {
     private readonly UserContext _dbContext;
+    private readonly IValidator<User> _userValidator;
 
-    public UserService(UserContext dbContext)
+    public UserService(UserContext dbContext, IValidator<User> userValidator)
     {
         _dbContext = dbContext;
+        _userValidator = userValidator;
     }
 
-    public async Task<UserDto> AddUserAsync(UserDto user)
+    public async Task<UserDto> AddUserAsync(CreateUserDto user)
     {
-        throw new NotImplementedException();
+        var validationResult = _userValidator.Validate(MapToModel(user));
+
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException(validationResult.Errors);
+        }
+
+        if (_dbContext.Users.Any(u => u.Email.Equals(user.Email)))
+        {
+            throw new ArgumentException($"Duplicate email address trying to be added: {user.Email}.");
+        }
+
+        var userEntity = MapToModel(user);
+        _dbContext.Users.Add(userEntity);
+        await _dbContext.SaveChangesAsync();
+
+        return MapToDto(userEntity);
     }
 
     public Task<bool> DeleteUserAsync(int id)
@@ -25,15 +45,16 @@ public class UserService : IUserService
         throw new NotImplementedException();
     }
 
-    public Task<UserDto?> GetUserByIdAsync(int id)
+    public async Task<UserDto?> GetUserByIdAsync(int id)
     {
-        throw new NotImplementedException();
+        var user = await _dbContext.Users.FindAsync(id);
+        return user != null ? MapToDto(user) : null;
     }
 
     public async Task<IEnumerable<UserDto>> GetUsersAsync()
     {
         var users = await _dbContext.Users.ToListAsync();
-        return users.Select(MapToModel).ToList();
+        return users.Select(MapToDto).ToList();
     }
 
     public Task<UserDto?> UpdateUserAsync(int id, UserDto user)
@@ -41,7 +62,7 @@ public class UserService : IUserService
         throw new NotImplementedException();
     }
 
-    private static UserDto MapToModel(User entity)
+    private static UserDto MapToDto(User entity)
     {
         return new UserDto
         {
@@ -55,11 +76,23 @@ public class UserService : IUserService
         };
     }
 
-    private static User MapToEntity(UserDto model)
+    private static User MapToModel(UserDto model)
     {
         return new User
         {
             Id = model.Id,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            Email = model.Email,
+            DateOfBirth = model.DateOfBirth,
+            PhoneNumber = model.PhoneNumber
+        };
+    }
+
+    private static User MapToModel(CreateUserDto model)
+    {
+        return new User
+        {
             FirstName = model.FirstName,
             LastName = model.LastName,
             Email = model.Email,

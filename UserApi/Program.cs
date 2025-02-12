@@ -1,15 +1,19 @@
 namespace WebApi.UserApi;
 
+using FluentValidation;
+
 // Microsoft.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 // WebApi.UserApi.
 using Data;
+using Models;
+using Models.Validators;
+using Services;
 
 // Serilog.
 using Serilog;
-using WebApi.UserApi.Services;
 
 public class Program
 {
@@ -47,6 +51,7 @@ public class Program
 
         // Add Scoped objects.
         builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<IValidator<User>, UserValidator>();
 
         var app = builder.Build();
 

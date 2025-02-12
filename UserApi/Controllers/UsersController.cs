@@ -29,13 +29,47 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById(int id)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Fetching user with ID: {Id}", id);
+        var user = await _userService.GetUserByIdAsync(id);
+        if (user == null)
+        {
+            _logger.LogWarning("User with ID: {Id} not found.", id);
+            return NotFound();
+        }
+        return Ok(user);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateUser([FromBody] UserDto user)
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto user)
     {
-        throw new NotImplementedException();
+        if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("Invalid user model received.");
+            return BadRequest(ModelState);
+        }
+
+        _logger.LogInformation("Creating a new user.");
+        try
+        {
+            var createdUser = await _userService.AddUserAsync(user);
+            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
+        }
+        catch (FluentValidation.ValidationException ve)
+        {
+            _logger.LogError(ve, "Error occurred while creating a user");
+            return StatusCode(400, ve.Message);
+        }
+        catch (ArgumentException ae)
+        {
+            _logger.LogError(ae, "Error occurred while creating a user");
+            return StatusCode(409, ae.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while creating a user.");
+
+            return StatusCode(500, "Internal server error.");
+        }
     }
 
     [HttpPut("{id}")]
