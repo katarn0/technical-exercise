@@ -40,9 +40,19 @@ public class UserService : IUserService
         return MapToDto(userEntity);
     }
 
-    public Task<bool> DeleteUserAsync(int id)
+    public async Task<bool> DeleteUserAsync(int id)
     {
-        throw new NotImplementedException();
+        var user = await _dbContext.Users.FindAsync(id);
+
+        if (user == null)
+        {
+            return false;
+        }
+
+        _dbContext.Users.Remove(user);
+        await _dbContext.SaveChangesAsync();
+
+        return true;
     }
 
     public async Task<UserDto?> GetUserByIdAsync(int id)

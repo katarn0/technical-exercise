@@ -112,6 +112,21 @@ public class UsersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Deleting user with ID: {Id}", id);
+        try
+        {
+            var success = await _userService.DeleteUserAsync(id);
+            if (!success)
+            {
+                _logger.LogWarning("User with ID: {Id} not found for deletion.", id);
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while deleting user with ID: {Id}", id);
+            return StatusCode(500, "Internal server error.");
+        }
     }
 }
