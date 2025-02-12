@@ -14,10 +14,10 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Log.Logger = new LoggerConfiguration()
-            .ReadFrom
-            .Configuration(Configuration)
-            .CreateLogger();
+        //Log.Logger = new LoggerConfiguration()
+        //    .ReadFrom
+        //    .Configuration(Configuration)
+        //    .CreateLogger();
         
         var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +41,8 @@ public class Program
         .EnableSensitiveDataLogging(true)
 #endif
     );
+
+        builder.Services.AddRouting(options => options.LowercaseUrls =  true);
 
         var app = builder.Build();
 
