@@ -47,6 +47,7 @@ public class UserServiceTests
     [Test]
     public async Task AddUserAsync_ShouldAddUser()
     {
+        // Arrange.
         var user = new CreateUserDto
         {
             FirstName = "John",
@@ -56,8 +57,10 @@ public class UserServiceTests
             PhoneNumber = "1234567890"
         };
 
+        // Act.
         var result = await _userService.AddUserAsync(user);
 
+        // Assert.
         Assert.That(result, Is.Not.Null);
         Assert.That(result.FirstName, Is.EqualTo(user.FirstName));
         Assert.That(result.LastName, Is.EqualTo(user.LastName));
@@ -72,6 +75,7 @@ public class UserServiceTests
     [Test]
     public void AddUserAsync_ShouldThrowValidationException_WhenInvalidUser()
     {
+        // Arrange.
         var user = new CreateUserDto
         {
             FirstName = "",
@@ -81,13 +85,17 @@ public class UserServiceTests
             PhoneNumber = "123"
         };
 
+        // Act.
         var ex = Assert.ThrowsAsync<ValidationException>(async () => await _userService.AddUserAsync(user));
+
+        // Assert.
         Assert.That(ex.Errors, Is.Not.Empty);
     }
 
     [Test]
     public async Task GetUsersAsync_ShouldReturnAllUsers()
     {
+        // Arrange.
         var userEntity = new User
         {
             FirstName = "John",
@@ -100,8 +108,10 @@ public class UserServiceTests
         _dbContext.Users.Add(userEntity);
         await _dbContext.SaveChangesAsync();
 
+        // Act.
         var users = (await _userService.GetUsersAsync()).ToList();
 
+        // Assert.
         Assert.That(users.Count, Is.EqualTo(1));
         Assert.That(users[0].FirstName, Is.EqualTo(userEntity.FirstName));
     }
@@ -109,6 +119,7 @@ public class UserServiceTests
     [Test]
     public async Task GetUserByIdAsync_ShouldReturnUserIfExists()
     {
+        // Arrange.
         var userEntity = new User
         {
             FirstName = "John",
@@ -121,8 +132,10 @@ public class UserServiceTests
         _dbContext.Users.Add(userEntity);
         await _dbContext.SaveChangesAsync();
 
+        // Act.
         var user = await _userService.GetUserByIdAsync(userEntity.Id);
 
+        // Assert.
         Assert.That(user, Is.Not.Null);
         Assert.That(user.FirstName, Is.EqualTo(userEntity.FirstName));
     }
@@ -130,6 +143,7 @@ public class UserServiceTests
     [Test]
     public async Task UpdateUserAsync_ShouldUpdateExistingUser()
     {
+        // Arrange.
         var userEntity = new User
         {
             FirstName = "John",
@@ -151,8 +165,10 @@ public class UserServiceTests
             PhoneNumber = "0987654321"
         };
 
+        // Act.
         var result = await _userService.UpdateUserAsync(userEntity.Id, updatedUser);
 
+        // Assert.
         Assert.That(result, Is.Not.Null);
         Assert.That(result.FirstName, Is.EqualTo(updatedUser.FirstName));
         Assert.That(result.LastName, Is.EqualTo(updatedUser.LastName));
@@ -161,6 +177,7 @@ public class UserServiceTests
     [Test]
     public async Task DeleteUserAsync_ShouldRemoveUserIfExists()
     {
+        // Arrange.
         var userEntity = new User
         {
             FirstName = "John",
@@ -173,11 +190,13 @@ public class UserServiceTests
         _dbContext.Users.Add(userEntity);
         await _dbContext.SaveChangesAsync();
 
+        // Act.
         var result = await _userService.DeleteUserAsync(userEntity.Id);
+        var usersInDb = await _dbContext.Users.ToListAsync();
 
+        // Assert.
         Assert.That(result, Is.True);
 
-        var usersInDb = await _dbContext.Users.ToListAsync();
         Assert.That(usersInDb.Count, Is.EqualTo(0));
     }
 
