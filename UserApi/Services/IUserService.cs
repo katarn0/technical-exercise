@@ -1,16 +1,16 @@
 ﻿namespace WebApi.UserApi.Services;
 
-using Models;
+using Models.DataTransferObjects;
 
 public interface IUserService
 {
-    Task<IEnumerable<User>> GetUsersAsync();
+    Task<IEnumerable<UserDto>> GetUsersAsync();
 
-    Task<User?> GetUserByIdAsync(int id);
+    Task<UserDto?> GetUserByIdAsync(int id);
 
-    Task<User> AddUserAsync(User user);
+    Task<UserDto> AddUserAsync(UserDto user);
 
-    Task<User?> UpdateUserAsync(int id, User user);
+    Task<UserDto?> UpdateUserAsync(int id, UserDto user);
 
     Task<bool> DeleteUserAsync(int id);
 }

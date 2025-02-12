@@ -21,7 +21,9 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Fetching all users.");
+        var users = await _userService.GetUsersAsync();
+        return Ok(users);
     }
 
     [HttpGet("{id}")]
