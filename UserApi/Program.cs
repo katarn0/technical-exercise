@@ -9,6 +9,7 @@ using Data;
 
 // Serilog.
 using Serilog;
+using WebApi.UserApi.Services;
 
 public class Program
 {
@@ -43,6 +44,9 @@ public class Program
     );
 
         builder.Services.AddRouting(options => options.LowercaseUrls =  true);
+
+        // Add Scoped objects.
+        builder.Services.AddScoped<IUserService, UserService>();
 
         var app = builder.Build();
 
