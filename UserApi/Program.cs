@@ -1,10 +1,26 @@
 namespace WebApi.UserApi;
 
+// Microsoft.
+using Microsoft.Extensions.Configuration;
+
+// Serilog.
+using Serilog;
+
 public class Program
 {
     public static void Main(string[] args)
     {
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom
+            .Configuration(Configuration)
+            .CreateLogger();
+        
         var builder = WebApplication.CreateBuilder(args);
+
+        // Add Serilog to the container.
+        builder.Host.UseSerilog((context, configuration) => configuration
+            .WriteTo.Console()
+            .ReadFrom.Configuration(context.Configuration), true);
 
         // Add services to the container.
 
@@ -30,4 +46,15 @@ public class Program
 
         app.Run();
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static IConfiguration Configuration { get; } = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+#if DEBUG
+        .AddJsonFile($"appsettings.Development.json", optional: true)
+#endif
+        .Build();
 }
