@@ -1,7 +1,11 @@
 namespace WebApi.UserApi;
 
 // Microsoft.
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+
+// WebApi.UserApi.
+using Data;
 
 // Serilog.
 using Serilog;
@@ -28,6 +32,15 @@ public class Program
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+
+        builder.Services.AddDbContext<UserContext>(options =>
+    //builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options
+    .UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
+#if DEBUG
+        .EnableSensitiveDataLogging(true)
+#endif
+    );
 
         var app = builder.Build();
 
